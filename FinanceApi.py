@@ -11,7 +11,7 @@ def OpenBrowser(url):
     opt.add_argument("--headless")
     opt.add_argument("--no-sandbox")
     # open the browser
-    browser = webdriver.Chrome("/Users/emre/Desktop/NotionFinance/chromedriver_m1", chrome_options=opt)
+    browser = webdriver.Chrome("location to/chromedriver_linux", chrome_options=opt)
     browser.get(url)
     browser.implicitly_wait(7)
     browser.maximize_window()
@@ -43,7 +43,7 @@ def GetStockInformation(url):
     browser = OpenBrowser(url)
 
     # set default values incase if a value is not found 
-    price, pe, dividence, marketCap, week1, month1, month3 = None, None, None, '', None, None, None
+    price, pe, dividence, marketCap, week1, month1, month3 = None, None, None, 'NotFound', None, None, None
 
     # read the price
     try:
@@ -104,7 +104,7 @@ def GetCryptoInformation(url):
     browser = OpenBrowser(url)
 
     # set default values incase if a value is not found 
-    price, pe, dividence, marketCap, week1, month1, month3 = None, None, None, '', None, None, None
+    price, pe, dividence, marketCap, week1, month1, month3 = None, None, None, 'NotFound', None, None, None
 
     # read the price
     price = ConvertTextToNumber(browser.find_element_by_class_name("price-3PT2D-PK").text)
@@ -129,7 +129,7 @@ def GetCoinInformation(url):
     browser = OpenBrowser(url)
 
     # set default values incase if a value is not found 
-    price, pe, dividence, marketCap, week1, month1, month3 = None, None, None, '', None, None, None
+    price, pe, dividence, marketCap, week1, month1, month3 = None, None, None, 'NotFound', None, None, None
 
     # read the price
     try:

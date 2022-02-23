@@ -107,6 +107,8 @@ def UpdatePage(pageId, arr):
 
     res = requests.request("PATCH", updateUrl, headers=headers, data=data)
     PrintDetail("LOG", "UPDATE STATUS", res.status_code)
+    if (res.status_code != 200):
+        PrintDetail("ERROR", "UPDATE CONTENT", res.content)
 
 
 def IterateAndUpdateDatabase():
