@@ -5,7 +5,7 @@ from datetime import datetime
 from decouple import config
 import time
 
-from FinanceApi import GetCoinInformation, GetCryptoInformation, GetStockInformation
+from FinanceApi import GetTradingView, GetCoinGeko
 from Helper import PrintDetail
 
 # env vars
@@ -29,36 +29,37 @@ now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 PrintDetail("START", "RUNING TIME", now)
 
 
-def ChangeValuesAcordingToBaseCurrecy(base, arr):
-    if (base == "USD"):
-        return arr
+def ChangeValuesAcordingToBaseCurrecy(base, price):
+    if (base == "USD" or base == "USDT"):
+        return price
 
     if (base == "EUR"):
-        PrintDetail("LOG", "EURO FOUND", arr)
+        PrintDetail("LOG", "EURO FOUND", price)
 
         getUrl = f"{databaseUrl}/pages/{EUR}"
         res = requests.request("GET", getUrl, headers=headers)
         euro = res.json()["properties"]["Price"]["number"]
 
-        arr[0] = arr[0] * euro
-        return arr
+        price = price * euro
+        return price
 
     if (base == "TL"):
-        PrintDetail("LOG", "TL FOUND", arr)
+        PrintDetail("LOG", "TL FOUND", price)
 
         getUrl = f"{databaseUrl}/pages/{TL}"
         res = requests.request("GET", getUrl, headers=headers)
+        print(res.json())
         tl = res.json()["properties"]["Price"]["number"]
 
-        arr[0] = arr[0] * tl
-        return arr
+        price = price * tl
+        return price
         
     PrintDetail("ERROR", "FOUND AN UKNOWN BASE CURRENCY", base)
-    return arr
+    return price
     
 
 
-def UpdatePage(pageId, arr):
+def UpdatePage(pageId, price):
     # arr will have the values in this order
     # price, pe, dividence, marketCap, 1week, 1month, 3months
     updateUrl = f"{databaseUrl}/pages/{pageId}"
@@ -66,31 +67,7 @@ def UpdatePage(pageId, arr):
     updateData = {
         "properties" : {
             "Price" : {
-                "number" : arr[0]
-            },
-            "P/E Ratio" : {
-                "number" : arr[1]
-            },
-            "Dividence" : {
-                "number" : arr[2]
-            },
-            "1 Week" : {
-                "number" : arr[4]
-            },
-            "1 Month" : {
-                "number" : arr[5]
-            },
-            "3 Months" : {
-                "number" : arr[6]
-            },
-            "Market Cap": {
-                "rich_text": [
-                    {
-                        "text" : {
-                            "content" : arr[3]
-                        }
-                    }
-                ]
+                "number" : price
             },
             "API Updated": {
                 "rich_text": [
@@ -129,25 +106,25 @@ def IterateAndUpdateDatabase():
         if (url != None and len(url) > 5):
             PrintDetail("LOG", "UPDATING", page['properties']['Name']['title'][0]['plain_text'])
             if (url.split("/")[2] == 'www.coingecko.com'):
-                arr = GetCoinInformation(url)
-                arr = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], arr)
-                PrintDetail("LOG", "SCRAPED COINGECKO DETAILS", arr)
-                UpdatePage(id, arr)
+                price = GetCoinGeko(url)
+                price = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], price)
+                PrintDetail("LOG", "SCRAPED COINGECKO DETAILS", price)
+                UpdatePage(id, price)
             elif (page['properties']['Type']['multi_select'][0]['name'] == 'Crypto'):
-                arr = GetCryptoInformation(url)
-                arr = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], arr)
-                PrintDetail("LOG", "SCRAPED CRYPTO DETAILS", arr)
-                UpdatePage(id, arr)
+                price = GetTradingView(url)
+                price = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], price)
+                PrintDetail("LOG", "SCRAPED CRYPTO DETAILS", price)
+                UpdatePage(id, price)
             elif (page['properties']['Type']['multi_select'][0]['name'] == 'Money'):
-                arr = GetCryptoInformation(url)
-                arr = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], arr)
-                PrintDetail("LOG", "SCRAPED FOREX DETAILS", arr)
-                UpdatePage(id, arr)
+                price = GetTradingView(url)
+                price = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], price)
+                PrintDetail("LOG", "SCRAPED FOREX DETAILS", price)
+                UpdatePage(id, price)
             else:
-                arr = GetStockInformation(url)
-                arr = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], arr)
-                PrintDetail("LOG", "SCRAPED STOCK DETAILS", arr)
-                UpdatePage(id, arr)
+                price = GetTradingView(url)
+                price = ChangeValuesAcordingToBaseCurrecy(page['properties']['Base Currency']['select']['name'], price)
+                PrintDetail("LOG", "SCRAPED STOCK DETAILS", price)
+                UpdatePage(id, price)
 
 
 if __name__ == "__main__":
